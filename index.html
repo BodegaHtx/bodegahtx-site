@@ -1427,7 +1427,7 @@ if (topbar && splash) {
       markers[st.num] = L.marker([st.lat, st.lng], {
         icon: L.divIcon({className: "bmap-pin", html: pinHTML(st), iconSize: [0, 0]}),
         title: "Bodega #" + st.num + " " + st.locality, riseOnHover: true
-      }).addTo(map).bindPopup(popHTML(st), {offset: [0, -28]});
+      }).addTo(map).bindPopup(popHTML(st), {offset: [0, -28], autoPanPaddingTopLeft: [20, 130], autoPanPaddingBottomRight: [20, 20]});
     });
     map.fitBounds(L.latLngBounds(stores.map(st => [st.lat, st.lng])), {padding: [40, 40]});
   };
