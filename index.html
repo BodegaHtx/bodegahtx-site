@@ -315,6 +315,18 @@ section{scroll-margin-top:72px}
 .coffee img{width:min(100%,330px)}
 .coffee h2{font-size:var(--step-2);margin-bottom:.7rem;color:var(--text)}
 .coffee p{color:var(--muted);margin:0;max-width:50ch}
+/* ---- meet Bo ---- */
+.bo-in{display:grid;grid-template-columns:.8fr 1.2fr;gap:clamp(1.6rem,4vw,3.4rem);align-items:center}
+@media (max-width:800px){.bo-in{grid-template-columns:1fr}}
+.bo-in > img{width:min(100%,320px);justify-self:center}
+.bo-in h2{font-size:var(--step-2);margin:.5rem 0 .8rem}
+.bo-in p{color:var(--muted);max-width:54ch}
+.bo-fam{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:clamp(2rem,5vw,3rem)}
+.bo-card{border:1px solid var(--rule);border-radius:14px;padding:1.1rem 1.2rem;background:var(--bg)}
+.bo-card .label{display:block;margin-bottom:.35rem}
+.bo-card h3{margin:0 0 .4rem;font-size:var(--step-1)}
+.bo-card p{margin:0 0 .7rem;color:var(--muted);font-size:.95rem}
+.bo-card a{font-weight:700;text-decoration:underline}
 
 /* ---------- locations : numbered stores ---------- */
 .loc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(252px,1fr));gap:1.2rem}
@@ -546,6 +558,7 @@ html{scroll-behavior:smooth}
       <a href="#fuel">Fuel</a>
       <a href="#breakfast">Breakfast</a>
       <a href="#coffee">Bo&rsquo;s Coffee</a>
+      <a href="#bo">Meet Bo</a>
       <a href="#locations">Locations</a>
       <a href="#careers">Careers</a>
     </nav>
@@ -666,6 +679,44 @@ html{scroll-behavior:smooth}
         <h2 class="display">The pot is always fresh</h2>
         <p>Bo&rsquo;s Coffee Co. is our own house coffee, brewed through the morning rush and poured for the drive
           ahead. Pair it with a breakfast taco and go.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MEET BO ================= -->
+  <section id="bo">
+    <div class="wrap sec">
+      <div class="bo-in">
+        <img src="assets/badge.png" alt="Bo the Bigfoot in his Texas cap, on the Bodega badge: Fuel, Food, Texas" width="620" height="620" loading="lazy" decoding="async">
+        <div>
+          <p class="label">Meet Bo</p>
+          <h2 class="display">Every Texas backroad has a Bigfoot story. Ours runs the store.</h2>
+          <p>Bo is the big guy in the Texas cap. You will spot him on the canopy, on the sign out front and on
+            every cup of Bo&rsquo;s Coffee. Nobody has ever gotten a clear photo of him, but somebody keeps the coffee
+            fresh, the restrooms spotless and the breakfast hot before the sun is up.</p>
+          <p style="margin-top:.8rem">He is what a Bodega stop should feel like: friendly, a little wild and
+            <strong>worth the exit</strong>.</p>
+        </div>
+      </div>
+      <div class="bo-fam">
+        <div class="bo-card">
+          <span class="label">House coffee</span>
+          <h3>Bo&rsquo;s Coffee Co.</h3>
+          <p>Our own house coffee, brewed through the morning rush and poured for the drive ahead.</p>
+          <a href="#coffee">About the coffee</a>
+        </div>
+        <div class="bo-card">
+          <span class="label">Inside Bodega #1</span>
+          <h3>Tacos by Bo</h3>
+          <p>Fresh breakfast tacos and lunch, Monday through Saturday, at our Livingston flagship on US-59.</p>
+          <a href="/livingston-us-59/">Bodega #1 details</a>
+        </div>
+        <div class="bo-card">
+          <span class="label">Every morning</span>
+          <h3>Breakfast, made to order</h3>
+          <p>Tacos, burritos and biscuits off the grill, not out of a warmer.</p>
+          <a href="#breakfast">See the menu</a>
+        </div>
       </div>
     </div>
   </section>
