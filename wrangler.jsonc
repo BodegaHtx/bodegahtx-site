@@ -1,0 +1,9 @@
+// Cloudflare deploy settings for bodegahtx.com.
+// Cloudflare runs `python3 build.py` (makes dist/), then `npx wrangler deploy`.
+{
+  "name": "divine-mode-ee47",
+  "compatibility_date": "2026-11-18",
+  "assets": {
+    "directory": "./dist"
+  }
+}
