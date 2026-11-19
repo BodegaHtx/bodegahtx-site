@@ -241,10 +241,90 @@ def location_page(store, data, css):
 <div class="stripe" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <footer class="site-foot"><div class="wrap">
 <p><a href="/">&larr; All {BRAND} locations</a></p>
-<p>{BRAND} Foods LLC &middot; Texas &middot; <a href="mailto:Admin@bodegahtx.com">Admin@bodegahtx.com</a></p>
+<p>{BRAND} Foods LLC &middot; Texas &middot; <a href="mailto:Admin@bodegahtx.com">Admin@bodegahtx.com</a> &middot; <a href="/privacy/">Privacy</a></p>
 </div></footer>'''
 
     return head(title, desc, canonical, f"<style>{css}</style>\n{schema}") + body + "\n</body>\n</html>\n"
+
+
+PRIVACY_UPDATED = "November 18, 2026"
+
+def privacy_page(css):
+    """Plain-language privacy policy. Keep it true to what the site actually
+    does: no forms, no cookies, no analytics. Update it before adding any."""
+    title = f"Privacy Policy — {BRAND}"
+    desc = "How bodegahtx.com handles your information: no accounts, no tracking cookies, no data sold."
+    canonical = f"{ORIGIN}/privacy/"
+    email = '<a href="mailto:Admin@bodegahtx.com">Admin@bodegahtx.com</a>'
+    body = f'''<div class="topbar"><header class="site-head"><div class="wrap head-in">
+<a href="/" aria-label="Bodega home"><img src="/assets/lockup.png" alt="Bodega" width="172" height="60"></a>
+<nav class="nav"><a href="/#fuel">Fuel</a><a href="/#breakfast">Breakfast</a><a href="/#locations">All locations</a></nav>
+</div></header><div class="stripe" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+
+<main><section class="sec"><div class="wrap legal" style="max-width:72ch;padding-top:clamp(5rem,9vw,7rem)">
+<p class="label">Last updated {PRIVACY_UPDATED}</p>
+<h1 class="display" style="font-size:var(--step-3);margin:.4rem 0 1.2rem">Privacy Policy</h1>
+<p class="lede">The short version: this website does not ask for your name, does not set tracking cookies,
+and we do not sell anyone&rsquo;s information. Here are the details.</p>
+
+<h2>Who we are</h2>
+<p>This policy covers bodegahtx.com, run by {BRAND} Foods LLC, which operates Bodega gas stations and
+convenience stores in Texas. Questions go to {email}.</p>
+
+<h2>What we collect on this website</h2>
+<p>Nothing that identifies you directly. The site has no sign-up forms, no accounts and no checkout.
+We do not use analytics or advertising trackers, and we do not set cookies.</p>
+<p>Like every website, our hosting provider (Cloudflare) automatically records basic technical
+information when a page loads: your IP address, browser type, the page requested and the time. This is
+used to deliver the site, keep it secure and stop abuse. It is kept by Cloudflare under
+<a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">its own privacy policy</a>.</p>
+
+<h2>Services that load on our pages</h2>
+<p>To show fonts, maps and today&rsquo;s fuel prices, some pages load content from other companies. When
+they do, your browser contacts those companies directly, and they can see your IP address and browser
+details:</p>
+<ul>
+<li><strong>Google Fonts</strong> for the site&rsquo;s typefaces, and <strong>Google Maps</strong> on store pages
+(<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google privacy policy</a>).</li>
+<li><strong>OpenStreetMap</strong> for the store map on the homepage
+(<a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">OSM privacy policy</a>),
+with the map code served by <strong>unpkg</strong>.</li>
+<li><strong>GitHub</strong>, which hosts the file our price board reads
+(<a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub privacy statement</a>).</li>
+</ul>
+<p>Links to Google Maps directions take you to Google&rsquo;s own site, where Google&rsquo;s policy applies.</p>
+
+<h2>If you contact us</h2>
+<p>If you email us, about a job or anything else, we use what you send only to reply and to handle your
+request. We do not add you to a marketing list unless you ask us to, and we do not sell or rent your
+information to anyone.</p>
+
+<h2>In our stores</h2>
+<p>This policy is about the website. Our stores use security cameras for safety, and card payments
+at the pump and register are handled by our payment processors, not stored by this website.</p>
+
+<h2>Children</h2>
+<p>This site is not aimed at children under 13, and we do not knowingly collect information from them.</p>
+
+<h2>Your choices</h2>
+<p>You can ask us what information we hold about you from emails you have sent, and ask us to correct or
+delete it, by writing to {email}. You can also block fonts and maps in your browser; the store addresses,
+hours and phone numbers still work without them.</p>
+
+<h2>Changes</h2>
+<p>If we add anything that collects information, such as a text club, rewards or an application form, we
+will update this page first and change the date at the top.</p>
+</div></section></main>
+
+<div class="stripe" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+<footer class="site-foot"><div class="wrap">
+<p><a href="/">&larr; All {BRAND} locations</a></p>
+<p>{BRAND} Foods LLC &middot; Texas &middot; {email}</p>
+</div></footer>'''
+    legal_css = (".legal h2{font-size:var(--step-1);margin:2rem 0 .5rem}"
+                 ".legal p,.legal li{line-height:1.6}.legal ul{padding-left:1.2rem}"
+                 ".legal a{text-decoration:underline}")
+    return head(title, desc, canonical, f"<style>{css}{legal_css}</style>") + body + "\n</body>\n</html>\n"
 
 
 def build() -> Path:
@@ -300,7 +380,10 @@ def build() -> Path:
         d.mkdir()
         (d / "index.html").write_text(location_page(s_, data, css), encoding="utf-8")
 
-    urls = [ORIGIN + "/"] + [f"{ORIGIN}/{s['slug']}/" for s in stores]
+    (DIST / "privacy").mkdir()
+    (DIST / "privacy" / "index.html").write_text(privacy_page(css), encoding="utf-8")
+
+    urls = [ORIGIN + "/"] + [f"{ORIGIN}/{s['slug']}/" for s in stores] + [ORIGIN + "/privacy/"]
     (DIST / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
