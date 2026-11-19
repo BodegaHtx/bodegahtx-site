@@ -120,6 +120,10 @@ def store_schema(store, fuel_catalog, breakfast_hours):
     }
     if store.get("phone"):
         node["telephone"] = store["phone"]
+    if store.get("fuelBrand"):
+        # Branded fuel (e.g. Valero) sold at a Bodega store - say so plainly.
+        node["brand"] = {"@type": "Brand", "name": store["fuelBrand"]}
+        node["alternateName"] = f"{BRAND} #{store['num']} {store['fuelBrand']}"
     spec = hours_spec(store)
     if spec:
         node["openingHoursSpecification"] = spec
