@@ -50,6 +50,12 @@ def head(title, desc, canonical, extra=""):
         f'<meta name="description" content="{html.escape(desc)}">\n'
         f'<link rel="canonical" href="{canonical}">\n'
         '<meta name="theme-color" content="#F5EEE0">\n'
+        # Bo favicon - what Google shows in the circle beside search results.
+        # Google wants a square that's a multiple of 48px.
+        '<link rel="icon" href="/favicon.ico" sizes="any">\n'
+        '<link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">\n'
+        '<link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">\n'
+        '<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">\n'
         # Google Search Console ownership. Removing it un-verifies the property.
         '<meta name="google-site-verification" content="0EZfFCBNcTX2xMkxhFquPEHuDHkV7Iwgs5e_2zuZuho">\n'
         f'<meta property="og:type" content="website">\n'
@@ -307,6 +313,8 @@ def build() -> Path:
         f"User-agent: *\nAllow: /\n\nSitemap: {ORIGIN}/sitemap.xml\n", encoding="utf-8")
 
     shutil.copytree(ROOT / "assets", DIST / "assets")
+    # Browsers and Google also request /favicon.ico at the root directly.
+    shutil.copy(ROOT / "assets" / "favicon.ico", DIST / "favicon.ico")
     print(f"built {DIST}/  -  homepage + {len(stores)} location pages, sitemap, robots")
     for s_ in stores:
         print(f"   /{s_['slug']}/  {BRAND} #{s_['num']} - {s_['locality']}, {s_['region']}")
