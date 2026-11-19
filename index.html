@@ -514,6 +514,28 @@ a:focus-visible,.btn:focus-visible{outline:3px solid var(--fuel);outline-offset:
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* ---- store map ---- */
+.store-map-wrap{margin:0 0 clamp(1.6rem,4vw,2.4rem)}
+.store-map{height:clamp(340px,52vw,520px);border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:#e8e2d4;z-index:0}
+.store-map-note{margin:.6rem 0 0;color:var(--muted);font-size:.92rem}
+.bmap-pin{background:none;border:0}
+.bmap-pin span{position:absolute;left:0;bottom:8px;transform:translateX(-50%);white-space:nowrap;
+  background:var(--ranger-navy);color:#fff;font:800 .82rem/1 Archivo,system-ui,sans-serif;letter-spacing:.01em;
+  padding:.42rem .6rem;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.28);border:2px solid #fff}
+.bmap-pin span b{color:var(--kolache);font-weight:800;margin-left:.3rem}
+.bmap-pin span::after{content:"";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);
+  border:6px solid transparent;border-top-color:var(--ranger-navy)}
+.bmap-pop{font:400 .92rem/1.4 Archivo,system-ui,sans-serif;color:var(--deep-roast);min-width:200px}
+.bmap-pop h4{margin:0 0 .25rem;font:800 1.02rem/1.2 Archivo,system-ui,sans-serif}
+.bmap-pop .pp{display:flex;gap:.9rem;margin:.45rem 0 .55rem}
+.bmap-pop .pp div{display:flex;flex-direction:column}
+.bmap-pop .pp small{color:rgba(59,0,0,.6);font-size:.74rem;text-transform:uppercase;letter-spacing:.04em}
+.bmap-pop .pp strong{font-size:1.05rem}
+.bmap-pop .acts{display:flex;gap:.5rem;flex-wrap:wrap}
+.bmap-pop .acts a{display:inline-block;padding:.4rem .7rem;border-radius:999px;font-weight:700;text-decoration:none;font-size:.85rem}
+.bmap-pop .acts a.go{background:var(--fuel);color:var(--deep-roast)}
+.bmap-pop .acts a.det{border:1px solid var(--deep-roast);color:var(--deep-roast)}
 </style>
 
 <div class="topbar" id="topbar">
@@ -656,6 +678,10 @@ html{scroll-behavior:smooth}
         <h2 class="display">Where we are</h2>
         <p>Six stores open across Texas. Pull in, fill up, eat something hot.</p>
       </div>
+      <div class="store-map-wrap">
+        <div id="store-map" class="store-map" role="region" aria-label="Map of Bodega stores with today's regular price"></div>
+        <p class="store-map-note">Pins show today&rsquo;s regular price. Tap a pin for hours, diesel and directions.</p>
+      </div>
       <div class="loc-grid" id="loc-grid"></div>
 
       <div class="sec-head" style="margin-top:clamp(2.6rem,6vw,4rem)">
@@ -783,6 +809,7 @@ html{scroll-behavior:smooth}
   {
    "num": "1",
    "slug": "livingston-us-59",
+   "lat": 30.6602442, "lng": -94.9481,
    "photos": [
     {"f":"liv59-night-aerial","lead":true,"alt":"Bodega #1 lit at night from the air, with trucks parked along the east lot"},
     {"f":"liv59-forecourt-night","alt":"Diesel pumps under the lit canopy at night, store entrance behind"},
@@ -843,6 +870,7 @@ html{scroll-behavior:smooth}
   {
    "num": "2",
    "slug": "magnolia",
+   "lat": 30.156184, "lng": -95.7513929,
    "photos": [
     {"f":"mag2-canopy-store","lead":true,"alt":"Bodega #2 in Magnolia: the fuel canopy with the Bo mascot and the store behind it"},
     {"f":"mag2-storefront","alt":"Bodega #2 storefront on Nichols Sawmill Rd, with the ice box and open sign"},
@@ -884,6 +912,7 @@ html{scroll-behavior:smooth}
   {
    "num": "3",
    "slug": "houston-westheimer",
+   "lat": 29.7352473, "lng": -95.6191882,
    "street": "13103 Westheimer Rd",
    "locality": "Houston",
    "region": "TX",
@@ -907,6 +936,7 @@ html{scroll-behavior:smooth}
   {
    "num": "7",
    "slug": "livingston-north",
+   "lat": 30.8553556, "lng": -94.8554906,
    "street": "11879 US-59",
    "locality": "Livingston",
    "region": "TX",
@@ -936,6 +966,7 @@ html{scroll-behavior:smooth}
   {
    "num": "8",
    "slug": "houston-cypress-station",
+   "lat": 30.031622, "lng": -95.4406273,
    "street": "636 Cypress Station Dr",
    "locality": "Houston",
    "region": "TX",
@@ -960,6 +991,7 @@ html{scroll-behavior:smooth}
   {
    "num": "10",
    "slug": "san-antonio-commerce",
+   "lat": 29.4267113, "lng": -98.5123149,
    "street": "1602 W Commerce St",
    "locality": "San Antonio",
    "region": "TX",
@@ -1266,6 +1298,7 @@ function fmtStamp(d){
     t.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
 }
 function renderPrices(list){
+  if (window.bodegaMapPrices) window.bodegaMapPrices(list);
   const tabs = document.getElementById("p-tabs");
   const board = document.getElementById("p-board");
   const meta = document.getElementById("p-meta");
@@ -1336,6 +1369,86 @@ if (topbar && splash) {
   addEventListener("resize", sync, { passive: true });
   sync();
 }
+
+
+/* ---- STORE MAP --------------------------------------------------
+   Leaflet with CARTO tiles - no API key to manage or leak. The library
+   only loads when the map scrolls near view, so it costs nothing for
+   visitors who never get that far. Each pin shows the store's lowest
+   regular price from the same prices.json the price board reads.     */
+(function storeMap(){
+  const el = document.getElementById("store-map");
+  if (!el) return;
+  const stores = OPEN_STORES.filter(st => typeof st.lat === "number");
+  let prices = {}, markers = {}, map = null;
+  const low = (p, k) => {
+    const v = [parseFloat(p[k]), parseFloat(p[k + "_cash"])].filter(isFinite);
+    return v.length ? Math.min(...v) : null;
+  };
+  const pinHTML = st => {
+    const p = prices[String(st.num)], r = p && low(p, "regular");
+    return '<span>#' + esc(st.num) + (r ? "<b>$" + r.toFixed(2) + "</b>" : "") + "</span>";
+  };
+  const popHTML = st => {
+    const p = prices[String(st.num)] || {};
+    const r = low(p, "regular"), d = low(p, "diesel"), td = low(p, "truck_diesel");
+    const hrs = st.open24 ? "Open 24 hours"
+      : (st.hours && st.hours.length ? st.hours.map(h => h[0] + " " + h[1]).join("<br>") : "Open daily");
+    const q = encodeURIComponent(st.street + ", " + st.city);
+    return '<div class="bmap-pop"><h4>Bodega #' + esc(st.num) + " &middot; " + esc(st.locality) + "</h4>" +
+      esc(st.street) + "<br>" + hrs +
+      (st.phone ? '<br><a href="tel:' + st.phone.replace(/[^0-9]/g, "") + '">' + esc(st.phone) + "</a>" : "") +
+      ((r || d || td) ? '<div class="pp">' +
+        (r ? "<div><small>Regular</small><strong>$" + r.toFixed(2) + "</strong></div>" : "") +
+        (d ? "<div><small>Diesel</small><strong>$" + d.toFixed(2) + "</strong></div>" : "") +
+        (td && td !== d ? "<div><small>Truck diesel</small><strong>$" + td.toFixed(2) + "</strong></div>" : "") +
+        "</div>" : "<br>") +
+      '<div class="acts"><a class="go" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=' + q + '">Directions</a>' +
+      '<a class="det" href="/' + esc(st.slug) + '/">Store details</a></div></div>';
+  };
+  const refresh = () => {
+    stores.forEach(st => {
+      const m = markers[st.num]; if (!m) return;
+      m.setIcon(L.divIcon({className: "bmap-pin", html: pinHTML(st), iconSize: [0, 0]}));
+      m.setPopupContent(popHTML(st));
+    });
+  };
+  window.bodegaMapPrices = list => {
+    prices = Object.fromEntries(list.map(p => [String(p.store).replace("#", ""), p]));
+    if (map) refresh();
+  };
+  const build = () => {
+    map = L.map(el, {scrollWheelZoom: false, tap: true});
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19, subdomains: "abcd",
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
+    stores.forEach(st => {
+      markers[st.num] = L.marker([st.lat, st.lng], {
+        icon: L.divIcon({className: "bmap-pin", html: pinHTML(st), iconSize: [0, 0]}),
+        title: "Bodega #" + st.num + " " + st.locality, riseOnHover: true
+      }).addTo(map).bindPopup(popHTML(st), {offset: [0, -28]});
+    });
+    map.fitBounds(L.latLngBounds(stores.map(st => [st.lat, st.lng])), {padding: [40, 40]});
+  };
+  const load = () => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet"; css.href = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
+    css.integrity = "sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="; css.crossOrigin = "";
+    document.head.appendChild(css);
+    const js = document.createElement("script");
+    js.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    js.integrity = "sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="; js.crossOrigin = "";
+    js.onload = build;
+    document.head.appendChild(js);
+  };
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(es => {
+      if (es.some(e => e.isIntersecting)) { io.disconnect(); load(); }
+    }, {rootMargin: "600px"});
+    io.observe(el);
+  } else load();
+})();
 
 document.getElementById("yr").textContent = new Date().getFullYear();
 </script>
