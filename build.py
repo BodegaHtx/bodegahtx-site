@@ -315,6 +315,9 @@ def build() -> Path:
     shutil.copytree(ROOT / "assets", DIST / "assets")
     # Browsers and Google also request /favicon.ico at the root directly.
     shutil.copy(ROOT / "assets" / "favicon.ico", DIST / "favicon.ico")
+    # Let other sites (e.g. Google Business Profile tools) read store photos.
+    (DIST / "_headers").write_text(
+        "/assets/photos/*\n  Access-Control-Allow-Origin: *\n", encoding="utf-8")
     print(f"built {DIST}/  -  homepage + {len(stores)} location pages, sitemap, robots")
     for s_ in stores:
         print(f"   /{s_['slug']}/  {BRAND} #{s_['num']} - {s_['locality']}, {s_['region']}")
