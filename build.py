@@ -95,7 +95,9 @@ def store_schema(store, fuel_catalog, breakfast_hours):
     feats += [t["name"] for t in store.get("tenants", [])]
     feats += [fuel_catalog[k]["name"] for k in store.get("fuels", []) if k in fuel_catalog]
     if store.get("breakfast"):
-        feats.append("Breakfast " + clean(breakfast_hours))
+        feats.append("Breakfast " + clean(store.get("breakfastHours", breakfast_hours)))
+    if store.get("lunchHours"):
+        feats.append("Lunch " + clean(store["lunchHours"]))
     node = {
         "@context": "https://schema.org",
         "@type": "GasStation",
@@ -212,6 +214,8 @@ def location_page(store, data, css):
 <address style="font-style:normal;font-size:var(--step-1);font-weight:700;margin-bottom:1.4rem">
 {store['street']}<br>{city} {store['postal']}
 <br><span style="font-weight:400">{hours_text(store)}</span>
+{f'<br><span style="font-weight:400">Breakfast {store.get("breakfastHours", data["breakfastHours"])}</span>' if store.get("breakfast") else ""}
+{f'<br><span style="font-weight:400">Lunch {store["lunchHours"]}</span>' if store.get("lunchHours") else ""}
 {f'<br><a href="tel:{tel}" style="font-weight:700">{store["phone"]}</a>' if store.get("phone") else ""}
 </address>
 <div class="cta-row">

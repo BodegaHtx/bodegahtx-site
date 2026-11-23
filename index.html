@@ -886,6 +886,8 @@ html{scroll-behavior:smooth}
    "phone": "(936) 308-4550",
    "open24": true,
    "breakfast": true,
+   "breakfastHours": "6:00 AM &ndash; 11:00 AM",
+   "lunchHours": "11:00 AM &ndash; 2:00 PM",
    "fuels": [
     "ne90",
     "r87",
@@ -955,6 +957,8 @@ html{scroll-behavior:smooth}
     {"days": ["Sunday"], "opens": "07:00", "closes": "23:00"}
    ],
    "breakfast": true,
+   "breakfastHours": "6:00 AM &ndash; 11:00 AM",
+   "lunchHours": "11:00 AM &ndash; 2:00 PM",
    "fuels": [
     "r87",
     "m89",
@@ -964,10 +968,23 @@ html{scroll-behavior:smooth}
    ],
    "tags": [
     "Hot food",
+    "Tacos by Bo",
+    "Bo&rsquo;s Coffee",
+    "Buffalo Wild Wings GO &ndash; Coming soon",
     "Clean restrooms"
    ],
    "amenities": [],
-   "blurb": "Fuel, hot breakfast and clean restrooms on Nichols Sawmill Road in Magnolia."
+   "blurb": "Fuel, hot breakfast and clean restrooms on Nichols Sawmill Road in Magnolia.",
+   "tenants": [
+    {
+     "name": "Tacos by Bo",
+     "note": "Fresh breakfast tacos and lunch, made to order."
+    },
+    {
+     "name": "Buffalo Wild Wings GO &ndash; Coming soon",
+     "note": "Wings and takeout, opening soon inside the store."
+    }
+   ]
   },
   {
    "num": "3",
@@ -1292,7 +1309,8 @@ document.getElementById("loc-grid").innerHTML = OPEN_STORES.map(l => {
     <address>
       ${l.street ? esc(l.street) + "<br>" : ""}${esc(l.city)}
       <br><b class="hrs">${l.open24 ? "Open 24 hours" : (l.hours && l.hours.length ? l.hours.map(h => h[0] + " " + h[1]).join("<br>") : "Open daily")}</b>
-      ${l.breakfast ? "<br>Breakfast " + BREAKFAST_HOURS : ""}
+      ${l.breakfast ? "<br>Breakfast " + (l.breakfastHours || BREAKFAST_HOURS) : ""}
+      ${l.lunchHours ? "<br>Lunch " + l.lunchHours : ""}
       ${l.phone ? `<br><a class="tel" href="tel:${esc(l.phone).replace(/[^0-9]/g,"")}">${esc(l.phone)}</a>` : ""}
     </address>
     ${l.signage ? `<p class="signage"><b>Look for</b>${esc(l.signage)}</p>` : ""}
@@ -1434,15 +1452,16 @@ function renderPrices(list){
 })();
 
 const bStores = OPEN_STORES.filter(st => st.breakfast);
-const bNames = bStores.map(st => "#" + st.num + " " + st.city.split(",")[0]);
-document.getElementById("breakfast-where").innerHTML =
-  bStores.length === OPEN_STORES.length
-    ? "Served at every Bodega, " + BREAKFAST_HOURS + " daily."
-    : "<strong>Served at " +
-      (bNames.length > 1
-        ? bNames.slice(0, -1).join(", ") + " and " + bNames[bNames.length - 1]
-        : bNames[0]) +
-      ".</strong> " + BREAKFAST_HOURS + " daily.";
+/* Stores can override the breakfast hours, so group stores by their hours. */
+const bGroups = {};
+bStores.forEach(st => {
+  const h = st.breakfastHours || BREAKFAST_HOURS;
+  (bGroups[h] = bGroups[h] || []).push("#" + st.num + " " + st.city.split(",")[0]);
+});
+const joinNames = n => n.length > 1 ? n.slice(0, -1).join(", ") + " and " + n[n.length - 1] : n[0];
+document.getElementById("breakfast-where").innerHTML = Object.keys(bGroups)
+  .map(h => "<strong>" + joinNames(bGroups[h]) + ":</strong> " + h + " daily.")
+  .join("<br>");
 
 /* The header stays out of the way while Bo has the screen to himself, then
    slides in once the splash is mostly scrolled past. A plain scroll listener
