@@ -1,9 +1,9 @@
 {
  "updated": "2026-11-26",
  "stores": [
-  {"store": "1", "regular": 2.85, "midgrade": 3.45, "premium": 3.85, "diesel": 4.79, "truck_diesel": 4.79, "regular_cash": 2.75, "midgrade_cash": 3.35, "premium_cash": 3.75, "diesel_cash": 4.79, "truck_diesel_cash": 4.79, "updated": "2026-11-25", "confirmed": "2026-11-26T00:25"},
-  {"store": "2", "regular": 3.09, "midgrade": 3.59, "premium": 3.99, "diesel": 5.19, "regular_cash": 2.99, "midgrade_cash": 3.59, "premium_cash": 3.99, "diesel_cash": 5.09, "updated": "2026-11-23", "confirmed": "2026-11-26T00:25"},
-  {"store": "7", "regular": 3.29, "midgrade": 3.69, "premium": 4.29, "diesel": 4.99, "regular_cash": 3.19, "midgrade_cash": 3.69, "premium_cash": 4.29, "diesel_cash": 4.99, "updated": "2026-11-25", "confirmed": "2026-11-26T00:25"},
-  {"store": "10", "regular": 2.89, "midgrade": 3.09, "premium": 3.39, "regular_cash": 2.79, "midgrade_cash": 2.99, "premium_cash": 3.24, "updated": "2026-11-25", "confirmed": "2026-11-26T00:25"}
+  {"store": "1", "regular": 2.85, "midgrade": 3.45, "premium": 3.85, "diesel": 4.79, "truck_diesel": 4.79, "regular_cash": 2.75, "midgrade_cash": 3.35, "premium_cash": 3.75, "diesel_cash": 4.79, "truck_diesel_cash": 4.79, "updated": "2026-11-25", "confirmed": "2026-11-26T00:42"},
+  {"store": "2", "regular": 3.09, "midgrade": 3.59, "premium": 3.99, "diesel": 5.19, "regular_cash": 2.99, "midgrade_cash": 3.59, "premium_cash": 3.99, "diesel_cash": 5.09, "updated": "2026-11-23", "confirmed": "2026-11-26T00:42"},
+  {"store": "7", "regular": 3.29, "midgrade": 3.69, "premium": 4.29, "diesel": 4.99, "regular_cash": 3.19, "midgrade_cash": 3.69, "premium_cash": 4.29, "diesel_cash": 4.99, "updated": "2026-11-25", "confirmed": "2026-11-26T00:42"},
+  {"store": "10", "regular": 2.89, "midgrade": 3.09, "premium": 3.39, "regular_cash": 2.79, "midgrade_cash": 2.99, "premium_cash": 3.24, "updated": "2026-11-25", "confirmed": "2026-11-26T00:42"}
  ]
 }
