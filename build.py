@@ -304,7 +304,7 @@ def llms_txt(data):
         d = s.get("driver")
         if d:
             bits.append(f'{d["parking"]} truck parking spaces, {d["dieselLanes"]} diesel lanes, '
-                        f'{d["showers"]} showers, {d.get("def", "").lower()}')
+                        f'{d["showers"]} showers, {d.get("def", "")}')
         fuels = [fc[k]["name"] + (" " + fc[k]["octane"] if fc[k]["octane"] != "—" else "")
                  for k in s.get("fuels", []) if k in fc]
         if fuels:
