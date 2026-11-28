@@ -120,6 +120,13 @@ def store_schema(store, fuel_catalog, breakfast_hours):
             for f in dict.fromkeys(feats)
         ],
     }
+    if store.get("lat") is not None and store.get("lng") is not None:
+        node["geo"] = {"@type": "GeoCoordinates", "latitude": store["lat"], "longitude": store["lng"]}
+    if store.get("mapsPlaceId"):
+        # Ties this page to the store's verified Google Maps listing.
+        gmaps = "https://www.google.com/maps/place/?q=place_id:" + store["mapsPlaceId"]
+        node["hasMap"] = gmaps
+        node["sameAs"] = [gmaps]
     if store.get("phone"):
         node["telephone"] = store["phone"]
     if store.get("fuelBrand"):
@@ -136,10 +143,34 @@ def location_page(store, data, css):
     city = f"{store['locality']}, {store['region']}"
     is_truckstop = any(k in store.get("fuels", []) for k in ("tdiesel", "defbulk"))
     kind = "Gas Station &amp; Truck Stop" if is_truckstop else "Gas Station"
-    title = f"{BRAND} #{store['num']} — {clean(kind)} in {city}"
-    desc = clean(store["blurb"])
+    title = store.get("seoTitle") or f"{BRAND} #{store['num']} — {clean(kind)} in {city}"
+    desc = clean(store.get("seoDesc") or store["blurb"])
+    h1 = store.get("h1") or f"{kind} in {store['locality']}"
     canonical = f"{ORIGIN}/{store['slug']}/"
     schema = f'<script type="application/ld+json">{json.dumps(store_schema(store, fc, data["breakfastHours"]))}</script>'
+
+    # Driver questions, answered plainly. Same Q&A goes out as FAQPage data.
+    faq = store.get("faq", [])
+    if faq:
+        schema += '<script type="application/ld+json">' + json.dumps({
+            "@context": "https://schema.org", "@type": "FAQPage",
+            "mainEntity": [{"@type": "Question", "name": clean(q),
+                            "acceptedAnswer": {"@type": "Answer", "text": clean(a)}} for q, a in faq],
+        }) + '</script>'
+        faq_html = (
+            '<section class="sec" style="padding-top:0"><div class="wrap">'
+            '<h2 class="display" style="font-size:var(--step-2);margin-bottom:1rem">Driver questions</h2>'
+            '<dl class="faq">' + "".join(f"<dt>{q}</dt><dd>{a}</dd>" for q, a in faq) + '</dl></div></section>')
+    else:
+        faq_html = ""
+
+    drv = store.get("driver")
+    if drv:
+        facts = [f'{drv["parking"]} truck parking spaces', f'{drv["dieselLanes"]} diesel lanes',
+                 f'{drv["showers"]} showers', drv.get("def", "")]
+        driver_html = ('<p class="driver-facts">' + " &middot; ".join(f for f in facts if f) + '</p>')
+    else:
+        driver_html = ""
 
     def fuel_li(k):
         g = fc[k]
@@ -209,7 +240,7 @@ def location_page(store, data, css):
 
 <main><section class="hero"><div class="wrap hero-in" style="padding-top:clamp(5rem,9vw,7rem)">
 <p class="label">{BRAND} #{store['num']} &middot; {city}</p>
-<h1 class="shout" style="font-size:var(--step-3)">{kind} in {store['locality']}</h1>
+<h1 class="shout" style="font-size:var(--step-3)">{h1}</h1>
 <p class="lede">{store['blurb']}</p>
 <address style="font-style:normal;font-size:var(--step-1);font-weight:700;margin-bottom:1.4rem">
 {store['street']}<br>{city} {store['postal']}
@@ -241,10 +272,12 @@ def location_page(store, data, css):
 <h2 class="display" style="font-size:var(--step-2);margin-bottom:1rem">Fuel at this store</h2>
 <ul class="chips">{fuels}</ul>
 {tenants_html}
-{f'<h2 class="display" style="font-size:var(--step-2);margin:2.2rem 0 1rem">For drivers</h2><ul class="chips">{amen}</ul>' if amen else ""}
+{f'<h2 class="display" style="font-size:var(--step-2);margin:2.2rem 0 1rem">For drivers</h2>{driver_html}<ul class="chips">{amen}</ul>' if amen else ""}
 <h2 class="display" style="font-size:var(--step-2);margin:2.2rem 0 1rem">At this store</h2>
 <ul class="chips">{tags}</ul>
-</div></section></main>
+</div></section>
+
+{faq_html}</main>
 
 <div class="stripe" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
 <footer class="site-foot"><div class="wrap">
@@ -252,7 +285,42 @@ def location_page(store, data, css):
 <p>{BRAND} Foods LLC &middot; Texas &middot; <a href="mailto:Admin@bodegahtx.com">Admin@bodegahtx.com</a> &middot; <a href="/privacy/">Privacy</a></p>
 </div></footer>'''
 
-    return head(title, desc, canonical, f"<style>{css}</style>\n{schema}") + body + "\n</body>\n</html>\n"
+    page_css = (".driver-facts{font-weight:700;margin:0 0 1rem}"
+                ".faq{margin:0;max-width:70ch}.faq dt{font-weight:700;margin-top:1.1rem}"
+                ".faq dd{margin:.25rem 0 0;line-height:1.55}")
+    return head(title, desc, canonical, f"<style>{css}{page_css}</style>\n{schema}") + body + "\n</body>\n</html>\n"
+
+
+def llms_txt(data):
+    """Plain-language summary at /llms.txt so AI assistants get the facts right.
+    Built from the same store data as the pages, so it never drifts."""
+    fc = data["fuelCatalog"]
+    def line(s):
+        name = f"{BRAND} #{s['num']}" + (f" ({s['fuelBrand']})" if s.get("fuelBrand") else "")
+        bits = [s["street"] + ", " + s["locality"] + ", " + s["region"] + " " + s["postal"]]
+        if s.get("phone"):
+            bits.append(s["phone"])
+        bits.append("open 24 hours" if s.get("open24") else clean(hours_text(s).replace("<br>", "; ")))
+        d = s.get("driver")
+        if d:
+            bits.append(f'{d["parking"]} truck parking spaces, {d["dieselLanes"]} diesel lanes, '
+                        f'{d["showers"]} showers, {d.get("def", "").lower()}')
+        fuels = [fc[k]["name"] + (" " + fc[k]["octane"] if fc[k]["octane"] != "—" else "")
+                 for k in s.get("fuels", []) if k in fc]
+        if fuels:
+            bits.append("fuel: " + ", ".join(fuels))
+        inside = [t["name"] for t in s.get("tenants", [])]
+        if inside:
+            bits.append("inside: " + ", ".join(inside))
+        return f"- [{name}]({ORIGIN}/{s['slug']}/): " + "; ".join(clean(b) for b in bits)
+    stores = data["openStores"]
+    out = [f"# {BRAND}", "",
+           f"> {BRAND} (Bodega Foods LLC) runs gas stations and truck stops in Texas. "
+           "Known for clean restrooms, made-to-order breakfast tacos (Tacos by Bo) and Bo's Coffee, "
+           "with two 24-hour truck stops on US-59 in Livingston.", "",
+           "## Stores"] + [line(s) for s in stores] + [
+           "", "## Contact", "- Admin@bodegahtx.com", ""]
+    return "\n".join(out)
 
 
 PRIVACY_UPDATED = "November 18, 2026"
@@ -400,6 +468,7 @@ def build() -> Path:
     # exact filename and expects exactly this one line. Don't rename either.
     (DIST / "google5716dc86853a3145.html").write_text(
         "google-site-verification: google5716dc86853a3145.html\n", encoding="utf-8")
+    (DIST / "llms.txt").write_text(llms_txt(data), encoding="utf-8")
     (DIST / "robots.txt").write_text(
         f"User-agent: *\nAllow: /\n\nSitemap: {ORIGIN}/sitemap.xml\n", encoding="utf-8")
 
