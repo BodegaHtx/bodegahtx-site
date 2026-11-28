@@ -5,5 +5,11 @@
   "compatibility_date": "2026-11-18",
   "assets": {
     "directory": "./dist"
-  }
+  },
+  // Branch previews: Cloudflare runs `npx wrangler preview` with no build
+  // step, so wrangler builds dist/ itself first.
+  "build": {
+    "command": "python3 build.py"
+  },
+  "previews": {}
 }
